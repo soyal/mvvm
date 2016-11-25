@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mvvm</title>
+</head>
+<body>
+    <div id="test">
+        {{hello}}
+    </div>
+    <script src="mvvm.js"></script>
+    <script src="compile.js"></script>
+    <script src="observer.js"></script>
+    <script src="watcher.js"></script>
+    <script>
+        var str = "haha";
+        var vue = new Mvvm({
+            el : "#test",
+            data: {
+                hello : str
+            }
+        });
+    </script>
+</body>
+</html>
