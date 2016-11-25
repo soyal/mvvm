@@ -48,6 +48,30 @@ Compile.prototype.isTextNode = function(el) {
 };
 
 /**
+ * 判断是否为vue指令
+ * @param name
+ * @returns {boolean}
+ */
+Compile.prototype.isDirective = function(name) {
+
+    return name.indexOf("v-") > -1;
+
+};
+
+
+/**
+ * 判断是否为事件指令
+ * @param name
+ * @returns {boolean}
+ */
+Compile.prototype.isEventDirective = function(name) {
+
+    //todo
+    return false;
+
+};
+
+/**
  * 将node节点中的所有子元素移植到documentFragment中
  * @returns {documentFragment}
  */
@@ -83,7 +107,7 @@ Compile.prototype.compile = function(element) {
 
         if(_this.isElementNode(childNode)) { //如果是元素节点
 
-            _this.compileElementNode(childNode);
+            _this.compileElement(childNode);
 
         } else if(_this.isTextNode(childNode) && reg.test(text)) { //如果是文本节点
 
@@ -107,7 +131,31 @@ Compile.prototype.compile = function(element) {
  */
 Compile.prototype.compileElement = function(node) {
 
+    var attributes = Array.prototype.slice.call(node.attributes),
+        _this = this;
 
+    attributes.forEach(function(attr) {
+
+        var attrName = attr.name;
+
+        if(_this.isDirective(attrName)) {   //如果是v-指令
+
+            var val = attr.value,
+                name = attrName.substring(2);
+
+            if(_this.isEventDirective(name)) {  //如果是事件指令
+
+                //todo
+
+            } else {    //如果是普通指令
+
+                compileUtil[name] && compileUtil[name](node, _this.vm, val);
+
+            }
+
+        }
+
+    });
 
 };
 
@@ -127,7 +175,7 @@ Compile.prototype.compileText = function(node, key) {
 
 var compileUtil = {
 
-    bind : function(node, vm, key, dir) {   //将模板变量同updator绑定
+    bind : function(node, vm, key, dir) {   //将模板变量同updator绑定,当后台数据变动将反应到前台
 
         var updatorFn = updator[dir + "Updator"];
 
@@ -145,6 +193,18 @@ var compileUtil = {
 
         this.bind(node, vm, key, "text");
 
+    },
+
+    model : function(node, vm, key) {
+
+        this.bind(node, vm, key, "model");
+
+        node.addEventListener("input", function() {
+
+            vm[key] = this.value;
+
+        }, false);
+
     }
 
 };
@@ -156,6 +216,12 @@ var updator = {
     textUpdator : function(node, value) {
 
         node.textContent = typeof value === "undefined" ? "" : value;
+
+    },
+
+    modelUpdator : function(node, value) {
+
+        node.value = typeof value === "undefined" ? "" : value;
 
     }
 
